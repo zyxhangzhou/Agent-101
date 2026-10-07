@@ -21,12 +21,20 @@ def execute(name, args):
     return result
 
 
-def execute_call(name, arguments):
-    """解析模型给出的 arguments JSON，再交给 execute。解析失败也返回字符串。"""
+def parse_arguments(arguments):
+    """把模型给出的 arguments JSON 解析成字典。失败时返回错误字符串。"""
     try:
         args = json.loads(arguments or "{}")
     except json.JSONDecodeError as e:
-        return f"Error: JSONDecodeError: {e}"
+        return None, f"Error: JSONDecodeError: {e}"
     if not isinstance(args, dict):
-        return "Error: 工具参数必须是 JSON 对象"
+        return None, "Error: 工具参数必须是 JSON 对象"
+    return args, None
+
+
+def execute_call(name, arguments):
+    """解析参数后再执行。解析失败也返回字符串。"""
+    args, error = parse_arguments(arguments)
+    if error:
+        return error
     return execute(name, args)
